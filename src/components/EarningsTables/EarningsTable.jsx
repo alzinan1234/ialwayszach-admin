@@ -2,29 +2,31 @@
 "use client";
 
 import { useState, useEffect } from "react";
+// 1. Import useRouter from next/navigation
+import { useRouter } from 'next/navigation';
 import { Eye, ChevronLeft, ChevronRight } from "lucide-react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 
-// New dummy data to match the screenshot, expanded for pagination
 const dummyTransactions = Array.from({ length: 300 }).map((_, i) => ({
   id: i,
-  transactionId: `TXN#2025${i}`, // Made ID unique for better filtering
+  transactionId: `TXN#2025${i}`,
   name: "Nothing Studio",
   plan: "Premium Monthly",
   date: "Aug. 13, 2023",
   status: "Success",
   amount: 150,
-  avatarUrl: "/avatars/avatar-1.png", // Added avatar URL
+  avatarUrl: "/avatars/avatar-1.png",
 }));
 
 const itemsPerPage = 10;
 
 export default function EarningsTable() {
+  // 2. Initialize the router
+  const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Filter data based on search term
   const filteredData = dummyTransactions.filter((item) =>
     item.transactionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -34,7 +36,6 @@ export default function EarningsTable() {
     String(item.amount).includes(searchTerm)
   );
   
-  // Reset to page 1 whenever the search term changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
@@ -42,7 +43,6 @@ export default function EarningsTable() {
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  // Paginate the filtered data
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -54,13 +54,14 @@ export default function EarningsTable() {
     }
   };
 
+  // 3. Update the handleView function to navigate
   const handleView = (transaction) => {
-    alert(`Viewing transaction: ${transaction.transactionId}`);
+    // This will redirect the user to the details page, e.g., /transactions/0, /transactions/1, etc.
+    router.push(`/admin/earning/${transaction.id}`);
   };
 
   return (
     <>
-      {/* --- ADDED SECTION: Title and Search Bar --- */}
       <div className="mb-6 flex justify-between items-center">
         <h2 className="text-2xl font-semibold text-white">Earnings</h2>
         <div className="relative">
@@ -74,7 +75,6 @@ export default function EarningsTable() {
           />
         </div>
       </div>
-      {/* --- END ADDED SECTION --- */}
 
       <div className="bg-[#1E1E1E] text-white p-6 rounded-lg shadow-lg">
         <div className="overflow-x-auto">
@@ -96,7 +96,6 @@ export default function EarningsTable() {
                   <tr key={item.id} className="border-b border-gray-700">
                     <td className="py-4 px-4">{item.transactionId}</td>
                     <td className="py-4 px-4">
-                      {/* --- MODIFIED SECTION: Added Avatar --- */}
                       <div className="flex items-center gap-3">
                         <Image
                           src={item.avatarUrl}
@@ -107,13 +106,12 @@ export default function EarningsTable() {
                         />
                         <span>{item.name}</span>
                       </div>
-                      {/* --- END MODIFIED SECTION --- */}
                     </td>
                     <td className="py-4 px-4">{item.plan}</td>
                     <td className="py-4 px-4">{item.date}</td>
                     <td className="py-4 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="flex items-center gap-2 bg-[#4BB54B1A] w-max px-2 py-1 rounded-full">
+                        <div className="w-2 h-2 bg-[#4BB54B] rounded-full"></div>
                         <span>{item.status}</span>
                       </div>
                     </td>
@@ -126,18 +124,17 @@ export default function EarningsTable() {
                   </tr>
                 ))
               ) : (
-                 <tr>
-                    <td colSpan="7" className="text-center py-8 text-gray-400">
-                        No transactions found.
-                    </td>
-                 </tr>
+                   <tr>
+                      <td colSpan="7" className="text-center py-8 text-gray-400">
+                          No transactions found.
+                      </td>
+                   </tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Pagination */}
       {paginatedData.length > 0 && (
         <div className="flex justify-end items-center mt-6 gap-2 text-sm text-white">
           <button
@@ -148,7 +145,6 @@ export default function EarningsTable() {
             <ChevronLeft size={16} />
           </button>
           
-          {/* Your pagination logic here... */}
           {Array.from({ length: totalPages }).slice(0, 4).map((_, index) => {
               const pageNumber = index + 1;
               return (

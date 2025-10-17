@@ -1,208 +1,111 @@
 'use client';
 
-import React, { useState, useMemo } from 'react'; // Added useMemo for performance
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'; // Importing from heroicons
-import { ArrowLeft, Plus, Edit2, Trash2 } from 'lucide-react'; // Using Lucide for icons
+import React, { useState, useMemo } from 'react';
+import Link from 'next/link'; // Import Link for Next.js navigation
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon } from '@heroicons/react/24/outline'; // For Ban Modal X icon
+import { Trash2 } from 'lucide-react';
 
-// Mock user data (now includes a status for blocking)
-const initialUsers = new Array(35).fill(null).map((_, i) => ({ // Increased users for pagination demo
-  id: `user-${i + 1}`,
-  name: `Robo Gladiator ${i + 1}`,
-  email: `robo${i + 1}@gmail.com`,
-  date: `March ${15 + (i % 31)}, 2024`, // Varying date
-  avatar: 'https://placehold.co/24x24/cccccc/000000?text=A', // Using a placeholder image URL
-  status: 'active', // 'active' or 'blocked'
+// --- MOCK DATA FOR DEMO PURPOSES ---
+const initialUsers = new Array(35).fill(null).map((_, i) => ({
+  id: `rpt_00${i + 1}`,
+  name: `AlexTV ${i + 1}`,
+  email: `alex${i + 1}@example.com`,
+  date: `12 Jan 2024`,
+  avatar: 'https://placehold.co/40x40/cccccc/000000?text=A',
+  userType: i % 2 === 0 ? 'Creator' : 'User',
+  status: i % 7 === 0 ? 'blocked' : 'active',
+  // Details for creators:
+  videos: i % 2 === 0 ? 42 : undefined,
+  shorts: i % 2 === 0 ? 12 : undefined,
+  subscribers: i % 2 === 0 ? `${(4.3 + i/10).toFixed(1)} K` : undefined,
+  revenue: i % 2 === 0 ? `$${(1500 + i*10.90).toFixed(2)}` : undefined
 }));
 
-// AddJobTitleModal Component (moved here for self-containment)
-function AddJobTitleModal({ onClose, onSave, initialJobTitle = '' }) {
-  const [jobTitle, setJobTitle] = useState(initialJobTitle);
-
-  const handleSave = () => {
-    if (jobTitle.trim()) {
-      onSave(jobTitle.trim());
-      setJobTitle(''); // Clear input after saving
-    }
-  };
+// --- Ban/Unban Confirmation Modal (Kept for action button functionality) ---
+function BanUserModal({ user, onClose, onConfirm }) {
+  const isBanning = user.status === 'active';
+  const actionText = isBanning ? 'Ban' : 'Unblock';
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50 p-4">
-      <div className="bg-[#343434] rounded-lg shadow-xl w-full max-w-lg mx-auto p-6 relative">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <button onClick={onClose} className="text-[#00C1C9] bg-[#00C1C91A] rounded p-[10px] rounded-full hover:text-gray-300 transition-colors">
-            <ArrowLeft size={24} />
-          </button>
-          <h2 className="text-xl font-semibold text-white">{initialJobTitle ? 'Edit Job Title' : 'Add Designation'}</h2>
-        </div>
-
-        {/* Form */}
-        <div className="mb-6">
-          <label htmlFor="jobTitle" className="block text-white text-sm font-bold mb-2">
-            Job Title
-          </label>
-          <input
-            type="text"
-            id="jobTitle"
-            className="w-full border border-[#C3C3C3] rounded-md py-2 px-3 text-white placeholder-gray-500 focus:outline-none focus:border-[#00C1C9] focus:ring-1 focus:ring-[#00C1C9] bg-[#242424]" // Added bg color
-            placeholder="Enter job title"
-            value={jobTitle}
-            onChange={(e) => setJobTitle(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* Save Button */}
-        <div className="flex justify-center">
-          <button
-            onClick={handleSave}
-            className="bg-[#00C1C9] text-white font-semibold py-2 px-6 rounded-lg hover:bg-opacity-90 transition-opacity w-full"
-          >
-            Save
-          </button>
+    <div className="fixed inset-0 bg-black/80 bg-opacity-75 flex justify-center items-center z-50 p-4">
+      <div className="bg-[#343434] rounded-lg shadow-xl w-full max-w-sm mx-auto p-6 relative text-white">
+        <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-white transition-colors">
+          <XMarkIcon className="h-6 w-6" />
+        </button>
+        <div className="text-center py-4">
+          <Trash2 size={40} className={`mx-auto mb-4 ${isBanning ? 'text-[#FF0000]' : 'text-[#00C1C9]'}`} />
+          <h3 className="text-xl font-semibold mb-2">{actionText} User Confirmation</h3>
+          <p className="text-gray-400 mb-6">
+            Are you sure you want to {actionText.toLowerCase()} **{user.name}**?
+            This action can be reversed.
+          </p>
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-600 text-gray-300 rounded-lg hover:bg-[#444444] transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => onConfirm(user.id)}
+              className={`px-6 py-2 font-semibold rounded-lg transition-colors ${
+                isBanning
+                  ? 'bg-[#FF0000] hover:bg-[#cc0000] text-white'
+                  : 'bg-[#00C1C9] hover:bg-teal-700 text-white'
+              }`}
+            >
+              Yes, {actionText}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ServiceProviderJobTitlesModal Component (moved here for self-containment)
-function ServiceProviderJobTitlesModal({ onClose }) {
-  const [jobTitles, setJobTitles] = useState([
-    { id: 1, title: 'Plumber' },
-    { id: 2, title: 'Electrician' },
-    { id: 3, title: 'Carpenter' },
-  ]);
-  const [showAddJobTitleModal, setShowAddJobTitleModal] = useState(false);
-  const [editingJobTitle, setEditingJobTitle] = useState(null); // State to hold job title being edited
 
-  const handleAddJobTitle = (newTitle) => {
-    if (editingJobTitle) {
-      // If editing, update the existing job title
-      setJobTitles(jobTitles.map(jt => jt.id === editingJobTitle.id ? { ...jt, title: newTitle } : jt));
-      setEditingJobTitle(null); // Clear editing state
-    } else {
-      // Otherwise, add a new job title
-      setJobTitles([...jobTitles, { id: Date.now(), title: newTitle }]);
-    }
-    setShowAddJobTitleModal(false);
-  };
-
-  const handleEditClick = (jobTitle) => {
-    setEditingJobTitle(jobTitle);
-    setShowAddJobTitleModal(true);
-  };
-
-  const handleDeleteClick = (id) => {
-    if (window.confirm('Are you sure you want to delete this job title?')) {
-      setJobTitles(jobTitles.filter(jt => jt.id !== id));
-    }
-  };
-
-  return (
-    <>
-      <div className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-40 p-4">
-        <div className="bg-[#242424] rounded-lg shadow-xl w-full max-w-lg mx-auto p-6 relative">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center gap-4">
-              <button onClick={onClose} className="text-[#00C1C9] bg-[#00C1C91A] rounded-full p-[10px] hover:text-gray-300 transition-colors">
-                <ArrowLeft size={24} />
-              </button>
-              <h2 className="text-[16px] font-semibold text-white">Service provider Designations</h2>
-            </div>
-            <button
-              onClick={() => { setEditingJobTitle(null); setShowAddJobTitleModal(true); }}
-              className="flex items-center gap-1 border border-[#00C1C9] text-[12px] font-normal px-4 py-1 rounded-full bg-[#00C1C91A] text-white hover:bg-teal-900 transition-colors"
-            >
-              <Plus size={16} /> Add Designations
-            </button>
-          </div>
-
-          {/* Job Titles List */}
-          <div className="space-y-4">
-            {jobTitles.length === 0 ? (
-              <p className="text-gray-400 text-center">No job titles found.</p>
-            ) : (
-              jobTitles.map((jobTitle) => (
-                <div
-                  key={jobTitle.id}
-                  className="flex justify-between items-center bg-[#343434] rounded-lg p-3 border border-gray-600"
-                >
-                  <span className="text-white text-base">{jobTitle.title}</span>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => handleEditClick(jobTitle)}
-                      className="text-[#C267FF] hover:text-[#a040ff] transition-colors"
-                      title="Edit"
-                    >
-                      <Edit2 size={20} />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(jobTitle.id)}
-                      className="text-[#FF0000] hover:text-[#cc0000] transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Conditionally render AddJobTitleModal */}
-      {showAddJobTitleModal && (
-        <AddJobTitleModal
-          onClose={() => setShowAddJobTitleModal(false)}
-          onSave={handleAddJobTitle}
-          initialJobTitle={editingJobTitle ? editingJobTitle.title : ''} // Pass initial value for editing
-        />
-      )}
-    </>
-  );
-}
-
-
-// UserManagement Component (main component)
+// --- MAIN COMPONENT ---
 const UserManagement = () => {
-  const [showJobTitlesModal, setShowJobTitlesModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentUsers, setCurrentUsers] = useState(initialUsers); // State to manage user data
-  const [currentPage, setCurrentPage] = useState(1); // New state for current page
-  const itemsPerPage = 5; // Number of items per page
+  const [currentUsers, setCurrentUsers] = useState(initialUsers);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [userToBan, setUserToBan] = useState(null);
+  const itemsPerPage = 7;
 
   // Filter users based on search term
   const filteredUsers = useMemo(() => {
     if (!searchTerm) {
       return currentUsers;
     }
+    const lowerSearchTerm = searchTerm.toLowerCase();
     return currentUsers.filter(user =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.id.toLowerCase().includes(searchTerm.toLowerCase())
+      user.name.toLowerCase().includes(lowerSearchTerm) ||
+      user.email.toLowerCase().includes(lowerSearchTerm) ||
+      user.id.toLowerCase().includes(lowerSearchTerm) ||
+      user.userType.toLowerCase().includes(lowerSearchTerm)
     );
   }, [searchTerm, currentUsers]);
 
-  // Calculate users for the current page
+  // Pagination logic
   const indexOfLastUser = currentPage * itemsPerPage;
   const indexOfFirstUser = indexOfLastUser - itemsPerPage;
   const currentUsersDisplayed = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-
-  // Calculate total pages for pagination
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-  // Handle page change
   const handlePageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
     }
   };
 
-  // Handle blocking/unblocking a user
-  const handleBlockToggle = (userId) => {
+  // Ban/Unblock Handlers
+  const handleBanToggleRequest = (userId) => {
+    const user = currentUsers.find(u => u.id === userId);
+    setUserToBan(user);
+  };
+
+  const handleBlockToggleConfirm = (userId) => {
     setCurrentUsers(prevUsers =>
       prevUsers.map(user =>
         user.id === userId
@@ -210,154 +113,80 @@ const UserManagement = () => {
           : user
       )
     );
-  };
-
-  // Handle viewing user details - now logs to console instead of routing
-  const handleViewUser = (userId) => {
-    console.log(`Attempting to view details for user ID: ${userId}`);
-    // For this isolated environment, direct client-side routing is not available.
-    // You could implement a simple custom modal here to display user details if needed.
+    setUserToBan(null);
   };
 
   // Function to render page numbers dynamically
   const renderPageNumbers = () => {
     const pageNumbers = [];
-    // Always show first few pages, and last few pages, with "..." in between if many pages
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) {
+    // Simplified rendering logic for brevity
+    for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
-      }
-    } else {
-      pageNumbers.push(1);
-      if (currentPage > 3) pageNumbers.push('...');
-      if (currentPage > 2) pageNumbers.push(currentPage - 1);
-      pageNumbers.push(currentPage);
-      if (currentPage < totalPages - 1) pageNumbers.push(currentPage + 1);
-      if (currentPage < totalPages - 2) pageNumbers.push('...');
-      if (currentPage !== totalPages) pageNumbers.push(totalPages);
     }
 
-    return pageNumbers.map((num, index) => (
-      num === '...' ? (
-        <span key={index} className="px-2 text-gray-400">.....</span>
-      ) : (
-        <button 
-          key={index}
-          onClick={() => handlePageChange(num)}
-          className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${
-            currentPage === num ? 'bg-[#00C1C9] text-white' : 'hover:bg-[#1f1f1f] text-white'
-          }`}
-        >
-          {num}
-        </button>
-      )
+    return pageNumbers.map((num) => (
+      <button 
+        key={num}
+        onClick={() => handlePageChange(num)}
+        className={`w-8 h-8 flex items-center justify-center rounded transition-colors ${
+          currentPage === num ? 'bg-[#DDEC00] text-black' : 'hover:bg-[#1f1f1f] text-white border border-transparent'
+        } ${num !== 1 && num !== totalPages && num !== currentPage ? 'border-gray-700' : ''}`}
+      >
+        {num}
+      </button>
     ));
   };
 
 
   return (
     <>
-      <div className="bg-[#343434] rounded-lg text-white p-6">
-        {/* Header */}
+      <div className="bg-[#17191A] rounded-lg text-white p-6 min-h-[500px] flex flex-col">
+        {/* Header (Removed Job Titles Button) */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">User Management</h2>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowJobTitlesModal(true)}
-              className="border border-[#00C1C9] text-[12px] font-normal px-4 py-1 rounded-full bg-[#00C1C91A] text-white hover:bg-teal-900 transition-colors"
-            >
-              Manage Service provider job titles
-            </button>
-            <div className="flex items-center ">
-              <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search"
-                  className="pl-10 pr-4 py-2 bg-[#F3FAFA1A] rounded-tl-[7.04px] rounded-bl-[7.04px] border-[1px] border-[#0000001A] text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1); // Reset to first page on search
-                  }}
-                />
-              </div>
-              {/* Filter button with SVG - now acts as a visual trigger for search */}
-              <button
-                onClick={() => setSearchTerm(searchTerm)} // Re-apply current search term (triggers memoized filter)
-                className="hover:bg-gray-700 transition-colors bg-[#2A2A2A] p-[7px] rounded-tr-[7.04px] rounded-br-[7.04px]"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="25"
-                  viewBox="0 0 24 25"
-                  fill="none"
-                >
-                  <path
-                    d="M11 8.5L20 8.5"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M4 16.5L14 16.5"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <ellipse
-                    cx="7"
-                    cy="8.5"
-                    rx="3"
-                    ry="3"
-                    transform="rotate(90 7 8.5)"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                  <ellipse
-                    cx="17"
-                    cy="16.5"
-                    rx="3"
-                    ry="3"
-                    transform="rotate(90 17 16.5)"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </button>
+            {/* Search Input */}
+            <div className="relative">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search users..."
+                className="pl-10 pr-4 py-2 bg-[#F3FAFA1A] rounded-lg border-[1px] border-[#0000001A] text-sm focus:outline-none focus:ring-1 focus:ring-[#6999FF] w-full md:w-64 transition-all"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
             </div>
           </div>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto flex-grow">
           <table className="min-w-full border-collapse">
-            <thead className="bg-[#17787C]">
+            <thead className="bg-[#535353]">
               <tr className="text-sm text-white">
                 <th className="py-3 px-4 text-center">User ID</th>
                 <th className="py-3 px-4 text-center">Name</th>
                 <th className="py-3 px-4 text-center">Email</th>
-                <th className="py-3 px-4 text-center">Registration Date</th>
+                <th className="py-3 px-4 text-center">User Type</th>
+                <th className="py-3 px-4 text-center">Joined Date</th>
                 <th className="py-3 px-4 text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               {currentUsersDisplayed.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="py-4 text-center text-gray-400 border-b border-gray-600">
+                  <td colSpan="6" className="py-4 text-center text-gray-400 border-b border-gray-600">
                     No users found matching your search.
                   </td>
                 </tr>
               ) : (
                 currentUsersDisplayed.map((user) => (
-                  <tr key={user.id} className="text-sm text-white">
-                    <td className="py-2 px-4 text-center border-b border-gray-600">
-                      {user.id}
-                    </td>
-                    <td className="py-2 px-4 text-center border-b border-gray-600">
+                  <tr key={user.id} className="text-sm text-white  transition-colors">
+                    <td className="py-3 px-4 text-center border-b border-gray-600">{user.id}</td>
+                    <td className="py-3 px-4 text-center border-b border-gray-600">
                       <div className="flex justify-center items-center gap-2">
                         <img
                           src={user.avatar}
@@ -370,29 +199,62 @@ const UserManagement = () => {
                         {user.name}
                       </div>
                     </td>
-                    <td className="py-2 px-4 text-center border-b border-gray-600">
-                      {user.email}
-                    </td>
-                    <td className="py-2 px-4 text-center border-b border-gray-600">
-                      {user.date}
-                    </td>
-                    <td className="py-2 px-4 text-center border-b border-gray-600">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => handleViewUser(user.id)}
-                          className="px-3 py-1 text-xs border border-[#C267FF] text-[#C267FF] bg-[#0053B21A] rounded-full cursor-pointer hover:opacity-80"
-                        >
-                          View
-                        </button>
-                        <button
-                          onClick={() => handleBlockToggle(user.id)}
-                          className={`px-3 py-1 text-xs border rounded-full cursor-pointer hover:opacity-80 ${
-                            user.status === 'blocked'
-                              ? 'bg-[#B200001A] border-[#FF0000] text-[#FF0000]'
-                              : 'bg-green-600/10 border-green-600 text-green-400' // Example active color
+                    <td className="py-3 px-4 text-center border-b border-gray-600">{user.email}</td>
+                    <td className="py-3 px-4 text-center border-b border-gray-600">
+                      <div className="flex text-[12px] items-center justify-center gap-2 bg-[#4BB54B1A] w-max px-2 py-1 rounded-full mx-auto">
+                        <div className={`w-2 h-2 rounded-full ${
+                          user.userType === 'Creator' 
+                            ? 'bg-[#FFD700]' 
+                            : 'bg-gray-300'
+                        }`}></div>
+                        <span
+                          className={`font-semibold ${
+                            user.userType === 'Creator' 
+                              ? 'text-[#FFD700]' 
+                              : 'text-gray-300'
                           }`}
                         >
-                          {user.status === 'blocked' ? 'Unblock' : 'Block'}
+                          {user.userType}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-center border-b border-gray-600">{user.date}</td>
+                    <td className="py-3 px-4 text-center border-b border-gray-600">
+                      <div className="flex justify-center items-center gap-4">
+                        {/* Link to the dynamic details page */}
+                        <Link href={`/admin/user-management/${user.id}`} passHref legacyBehavior>
+                            <p
+                                className="p-2 rounded-full cursor-pointer hover:bg-[#6999FF]/10 transition-colors flex items-center justify-center"
+                                title="View Details"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="17" viewBox="0 0 22 17" fill="none" className="text-[#6999FF]">
+  <path d="M20.294 7.74494C20.598 8.17126 20.75 8.38442 20.75 8.69995C20.75 9.01549 20.598 9.22865 20.294 9.65497C18.9279 11.5705 15.4392 15.7 10.75 15.7C6.06078 15.7 2.5721 11.5705 1.20604 9.65497C0.902014 9.22865 0.75 9.01549 0.75 8.69995C0.75 8.38442 0.902013 8.17126 1.20604 7.74494C2.5721 5.82939 6.06078 1.69995 10.75 1.69995C15.4392 1.69995 18.9279 5.82939 20.294 7.74494Z" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M13.75 8.69995C13.75 7.0431 12.4069 5.69995 10.75 5.69995C9.09315 5.69995 7.75 7.0431 7.75 8.69995C7.75 10.3568 9.09315 11.7 10.75 11.7C12.4069 11.7 13.75 10.3568 13.75 8.69995Z" stroke="currentColor" stroke-width="1.5"/>
+</svg>
+                            </p>
+                        </Link>
+                        <button
+                          onClick={() => handleBanToggleRequest(user.id)}
+                          className={`p-2 rounded-full cursor-pointer hover:bg-opacity-80 transition-colors tooltip-container ${
+                            user.status === 'blocked'
+                              ? ' hover:bg-green-600/20'
+                              : ' hover:bg-[#B20000]/30'
+                          }`}
+                          title={user.status === 'blocked' ? 'Unblock User' : 'Ban User'}
+                        >
+                          {user.status === 'blocked' ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="23" viewBox="0 0 22 23" fill="none" className="text-green-500">
+                              <path d="M11.75 21.7H5.34087C3.79549 21.7 2.56631 20.948 1.46266 19.8965C-0.796635 17.7441 2.9128 16.0239 4.32757 15.1815C6.72679 13.7529 9.59251 13.3575 12.25 13.9951" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M15.25 6.19995C15.25 8.68523 13.2353 10.7 10.75 10.7C8.26472 10.7 6.25 8.68523 6.25 6.19995C6.25 3.71467 8.26472 1.69995 10.75 1.69995C13.2353 1.69995 15.25 3.71467 15.25 6.19995Z" stroke="currentColor" strokeWidth="1.5"/>
+                              <path d="M14.8 15.75L19.7 20.65M20.75 18.2C20.75 16.267 19.183 14.7 17.25 14.7C15.317 14.7 13.75 16.267 13.75 18.2C13.75 20.1329 15.317 21.7 17.25 21.7C19.183 21.7 20.75 20.1329 20.75 18.2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="hidden"/>
+                            </svg>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="23" viewBox="0 0 22 23" fill="none" className="text-[#FF0000]">
+                              <path d="M11.75 21.7H5.34087C3.79549 21.7 2.56631 20.948 1.46266 19.8965C-0.796635 17.7441 2.9128 16.0239 4.32757 15.1815C6.72679 13.7529 9.59251 13.3575 12.25 13.9951" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M15.25 6.19995C15.25 8.68523 13.2353 10.7 10.75 10.7C8.26472 10.7 6.25 8.68523 6.25 6.19995C6.25 3.71467 8.26472 1.69995 10.75 1.69995C13.2353 1.69995 15.25 3.71467 15.25 6.19995Z" stroke="currentColor" strokeWidth="1.5"/>
+                              <path d="M14.8 15.75L19.7 20.65M20.75 18.2C20.75 16.267 19.183 14.7 17.25 14.7C15.317 14.7 13.75 16.267 13.75 18.2C13.75 20.1329 15.317 21.7 17.25 21.7C19.183 21.7 20.75 20.1329 20.75 18.2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                            </svg>
+                          )}
                         </button>
                       </div>
                     </td>
@@ -402,34 +264,40 @@ const UserManagement = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-end items-center mt-6 gap-2 text-sm text-white">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="w-8 h-8 flex items-center justify-center border border-gray-600 rounded-full hover:bg-[#1f1f1f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="8" height="14" viewBox="0 0 8 14" fill="none">
+                <path d="M6.99995 13C6.99995 13 1.00001 8.58107 0.999999 6.99995C0.999986 5.41884 7 1 7 1" stroke="#E2E2E2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            {renderPageNumbers()}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="w-8 h-8 flex items-center justify-center border border-gray-600 rounded-full hover:bg-[#1f1f1f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="8" height="14" viewBox="0 0 8 14" fill="none">
+                <path d="M1.00005 1C1.00005 1 6.99999 5.41893 7 7.00005C7.00001 8.58116 1 13 1 13" stroke="#C8C8C8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Pagination */}
-      <div className="flex justify-end items-center mt-6 gap-2 text-sm text-white">
-        <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="w-8 h-8 flex items-center justify-center border rounded-full rounded hover:bg-[#1f1f1f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-        <svg xmlns="http://www.w3.org/2000/svg" width="8" height="14" viewBox="0 0 8 14" fill="none">
-  <path d="M6.99995 13C6.99995 13 1.00001 8.58107 0.999999 6.99995C0.999986 5.41884 7 1 7 1" stroke="#E2E2E2" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-        </button>
-        {renderPageNumbers()}
-        <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="w-8 h-8 flex items-center justify-center border rounded-full  hover:bg-[#1f1f1f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="8" height="14" viewBox="0 0 8 14" fill="none">
-  <path d="M1.00005 1C1.00005 1 6.99999 5.41893 7 7.00005C7.00001 8.58116 1 13 1 13" stroke="#C8C8C8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-        </button>
-      </div>
-
-      {/* Service Provider Job Titles Modal */}
-      {showJobTitlesModal && (
-        <ServiceProviderJobTitlesModal onClose={() => setShowJobTitlesModal(false)} />
+      {/* Ban/Unblock Confirmation Modal */}
+      {userToBan && (
+        <BanUserModal
+          user={userToBan}
+          onClose={() => setUserToBan(null)}
+          onConfirm={handleBlockToggleConfirm}
+        />
       )}
     </>
   );
