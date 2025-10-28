@@ -124,8 +124,10 @@ export default function ForgotPasswordPage() {
           {error && <p className="text-red-400 text-sm text-center">{error}</p>}
           {successMessage && (
             <p className="text-green-400 text-sm text-center">
+              
               {successMessage}
             </p>
+            
           )}
 
           <button

@@ -225,9 +225,14 @@ export default function WithdrawalDetailsPage() {
                         />
                     </div>
                     <div className="ml-4">
+
+
+                    
                         <h2 className="text-lg font-bold">Full name : {request.fullName}</h2>
                         <p className="text-sm text-gray-300">Email: {request.email}</p>
                         <p className="text-sm text-gray-300">Phone number: {request.phoneNumber}</p>
+
+
                     </div>
                 </div>
 
@@ -242,11 +247,15 @@ export default function WithdrawalDetailsPage() {
                         <span className="font-medium">{request.requestDate}</span>
                     </div>
                     <div className="flex justify-between">
+
                         <span className="text-gray-300">Amount:</span>
                         <span className="font-medium">{request.amount}</span>
+
                     </div>
                     <div className="flex justify-between">
+
                         <span className="text-gray-300">Status:</span>
+
                         <span className={`font-medium ${
                             request.status === 'Pending' ? 'text-orange-500' :
                             request.status === 'Approved' ? 'text-green-500' :
