@@ -31,6 +31,7 @@ export default function ChangePasswordForm() {
     }, 1000);
   };
 
+  
   return (
     <form onSubmit={handleSubmit} className="p-6 flex flex-col items-center">
       {" "}

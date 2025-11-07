@@ -21,7 +21,7 @@ export default function ProfilePage() {
   };
 
   // 4. This function is called when the user selects a new file
-  const handleImageChange = (event) => {
+  const handleImageChange = (event) => {   
     const file = event.target.files[0];
     if (file) {
       // Create a temporary URL for the selected image to show a preview
@@ -37,7 +37,7 @@ export default function ProfilePage() {
   };
 
   // 5. This function programmatically clicks the hidden file input
-  const handleImageClick = () => {
+  const handleImageClick = () => {  
     fileInputRef.current.click();
   };
 
@@ -186,6 +186,11 @@ export default function ProfilePage() {
           )}
           {activeTab === "changePassword" && <ChangePasswordForm />}
         </div>
+      </div>
+
+      <div>
+
+        
       </div>
     </div>
   );

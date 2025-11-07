@@ -116,7 +116,7 @@ const UserDetailPage = () => {
       </div>
     </div>
   );
-};
+};   
 
 // Helper component for detail items
 const DetailItem = ({ label, value, customClass = 'text-base', isFullWidth = false }) => (

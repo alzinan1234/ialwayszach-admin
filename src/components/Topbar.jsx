@@ -23,6 +23,10 @@ export default function Topbar({ onBellClick }) {
           <Image src="/image/userImage.png" alt="User Icon" width={40} height={40} />
         </div>
       </div>
+
+      <div>
+       
+      </div>
     </header>
   );
 }

@@ -70,6 +70,7 @@ export default function TrendingVideosTable() {
           {/* Table Header */}
           <thead>
             <tr className="border-b border-gray-700 text-white bg-[#FFFFFF1A]">
+
               <th className="py-3 px-4 font-medium">Rank</th>
               <th className="py-3 px-4 font-medium">Thumbnail</th>
               <th className="py-3 px-4 font-medium">Title</th>

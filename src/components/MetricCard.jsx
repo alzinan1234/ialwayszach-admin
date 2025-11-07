@@ -13,6 +13,8 @@ export default function MetricCard({ title, value, percentageChange, percentageD
   const changeColor = percentageDirection === 'up' ? 'text-green-500' : 'text-red-500';
   const changeBg = percentageDirection === 'up' ? 'bg-green-500/10' : 'bg-red-500/10';
 
+  
+
   return (
     <div className="w-full h-full bg-[#17191A] p-4  bg-opacity-10  flex flex-col justify-between border border-[#FFFFFF80] rounded-xl">
       {/* Header with Title and Dropdown */}
@@ -36,10 +38,15 @@ export default function MetricCard({ title, value, percentageChange, percentageD
                 <button
                   key={period}
                   onClick={() => {
+
+
+
                     setSelectedPeriod(period);
                     setIsDropdownOpen(false);
+
                     // In a real app, you'd trigger data fetching here
                     // onPeriodChange(period);
+
                   }}
                   className="block w-full text-left px-4 py-2 text-white hover:bg-gray-600 text-sm"
                 >
@@ -50,8 +57,9 @@ export default function MetricCard({ title, value, percentageChange, percentageD
           )}
         </div>
       </div>
+      
 
-      {/* Value */}
+      {/* Value */} 
       <div className="text-white text-4xl font-bold font-['Roboto'] mb-2">
         {value.toLocaleString()}
       </div>
