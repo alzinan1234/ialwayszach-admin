@@ -56,11 +56,17 @@ export default function ProfilePage() {
         <div className="p-6">
           <div className="flex justify-center gap-[18px] items-center mb-6">
             
-            {/* 6. Add onClick to the image container and make it a cursor-pointer */}
+            
+                 
+
             <div
               className="relative rounded-full border-4 border-gray-600 cursor-pointer"
               onClick={handleImageClick}
             >
+
+               {/* use the state varivale for the image for clock rounded-full for the full project overflow there are  */}
+
+
              <div className="w-[100px] h-[100px] rounded-full overflow-hidden">
                <Image
                 // 7. Use the state variable for the image source
