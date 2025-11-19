@@ -69,6 +69,8 @@ export default function PromotionApproval() {
         promo.title.toLowerCase().includes(term) ||
         promo.status.toLowerCase().includes(term) ||
         promo.dateSubmitted.toLowerCase().includes(term)
+
+        
     );
     setFilteredPromotions(newFilteredPromotions);
   };

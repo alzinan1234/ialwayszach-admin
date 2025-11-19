@@ -7,6 +7,7 @@ import {
   LayoutDashboard, FileText, Wallet, Users, Megaphone,
   CreditCard, HelpCircle, Bell, Settings, Image as ImageIcon,
   BanknoteArrowDown,
+  Video,
 } from 'lucide-react';
 import Image from 'next/image';
 import barss from '../../public/icon/bars.png';
@@ -16,7 +17,7 @@ const navItems = [
   { name: 'Manage Registrations', href: '/admin/manage-registrations', icon: FileText },
   { name: 'Earning', href: '/admin/earning', icon: Wallet },
   { name: 'User Management', href: '/admin/user-management', icon: Users },
-  { name: 'Promotion Approval', href: '/admin/promotion-approval', icon: Megaphone },
+  { name: 'Manage Content', href: '/admin/manage-content', icon: Video  },
   { name: 'Banner Approval', href: '/admin/banner-approval', icon: ImageIcon },
   { name: 'Subscriptions', href: '/admin/subscriptions', icon: CreditCard },
   { name: 'Support', href: '/admin/support', icon: HelpCircle },

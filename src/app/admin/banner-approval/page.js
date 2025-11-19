@@ -1,10 +1,11 @@
-import BannerApproval from '@/components/BannerManagement/BannerApproval'
+import BannerManagement from '@/components/BannerManagement/BannerManagement'
+import BannerApproval from '@/components/BannerManagement/BannerManagement'
 import React from 'react'
 
 const page = () => {
   return (
     <div>
-        <BannerApproval />
+        <BannerManagement />
     </div>
   )
 }
